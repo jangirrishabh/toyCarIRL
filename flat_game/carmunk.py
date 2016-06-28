@@ -39,6 +39,7 @@ class GameState:
 
         # Record steps.
         self.num_steps = 0
+        self.num_obstacles_type = 4
 
         # Create walls.
         static = [
@@ -65,8 +66,11 @@ class GameState:
         # Create some obstacles, semi-randomly.
         # We'll create three and they'll move around to prevent over-fitting.
         self.obstacles = []
-        self.obstacles.append(self.create_obstacle(300, 350, 100, "yellow"))
-        self.obstacles.append(self.create_obstacle(700, 350, 50, "brown"))
+        self.obstacles.append(self.create_obstacle(230, 220, 100, "yellow"))
+        self.obstacles.append(self.create_obstacle(250, 500, 100, "yellow"))
+        self.obstacles.append(self.create_obstacle(780, 350, 100, "brown"))
+        self.obstacles.append(self.create_obstacle(550, 200, 70, "brown"))
+        self.obstacles.append(self.create_obstacle(530, 520, 100, "brown"))
         #self.obstacles.append(self.create_obstacle(600, 600, 35))
 
         # Create a cat.
@@ -132,24 +136,18 @@ class GameState:
         # Get the current location and the readings there.
         x, y = self.car_body.position
         readings = self.get_sonar_readings(x, y, self.car_body.angle)
-        state = np.array([readings])
 
         # Set the reward.
         # Car crashed when any reading == 1
         if self.car_is_crashed(readings):
             self.crashed = True
-            #reward = -500
-            readings.append(500)
+            readings.append(-1)
             self.recover_from_crash(driving_direction)
         else:
-            # Higher readings are better, so return the sum.
-            #reward = -5 + int(readings) / 10)
             readings.append(0)
             
-        temp1 = np.array([100.0, 100.0, 100.0, 0])
-        readings = temp1 - readings
         reward = int(np.dot(self.W, readings))
-
+        state = np.array([readings])
 
         self.num_steps += 1
 
@@ -169,7 +167,7 @@ class GameState:
         self.cat_body.velocity = speed * direction
 
     def car_is_crashed(self, readings):
-        if readings[0] == 1 or readings[1] == 1 or readings[2] == 1:
+        if readings[0] >= 0.96 or readings[1] >= 0.96 or readings[2] >= 0.96:
             return True
         else:
             return False
@@ -212,15 +210,37 @@ class GameState:
         arm_left = self.make_sonar_arm(x, y)
         arm_middle = arm_left
         arm_right = arm_left
+        
+        obstacleType = []
+        obstacleType.append(self.get_arm_distance(arm_left, x, y, angle, 0.75)[1])
+        obstacleType.append(self.get_arm_distance(arm_middle, x, y, angle, 0)[1])
+        obstacleType.append(self.get_arm_distance(arm_right, x, y, angle, -0.75)[1])
+
+        ObstacleNumber = np.zeros(self.num_obstacles_type)
+
+        for i in obstacleType:
+            if i == 0:
+                ObstacleNumber[0] += 1
+            elif i == 1:
+                ObstacleNumber[1] += 1
+            elif i == 2:
+                ObstacleNumber[2] += 1
+            elif i == 3:
+                ObstacleNumber[3] += 1
+
 
         # Rotate them and get readings.
-        readings.append(self.get_arm_distance(arm_left, x, y, angle, 0.75))
-        readings.append(self.get_arm_distance(arm_middle, x, y, angle, 0))
-        readings.append(self.get_arm_distance(arm_right, x, y, angle, -0.75))
+        readings.append(1.0 - float(self.get_arm_distance(arm_left, x, y, angle, 0.75)[0]/39)) # 39 = max distance
+        readings.append(1.0 - float(self.get_arm_distance(arm_middle, x, y, angle, 0)[0]/39))
+        readings.append(1.0 - float(self.get_arm_distance(arm_right, x, y, angle, -0.75)[0]/39))
+        readings.append(float(ObstacleNumber[0]/3))
+        readings.append(float(ObstacleNumber[1]/3))
+        readings.append(float(ObstacleNumber[2]/3))
+        readings.append(float(ObstacleNumber[3]/3))
 
         if show_sensors:
             pygame.display.update()
-
+        
         return readings
 
     def get_arm_distance(self, arm, x, y, angle, offset):
@@ -240,17 +260,18 @@ class GameState:
             # if we did.
             if rotated_p[0] <= 0 or rotated_p[1] <= 0 \
                     or rotated_p[0] >= width or rotated_p[1] >= height:
-                return i  # Sensor is off the screen.
+                return [i, 3]  # Sensor is off the screen, return 3 for wall obstacle
             else:
                 obs = screen.get_at(rotated_p)
-                if self.get_track_or_not(obs) != 0:
-                    return i
+                temp = self.get_track_or_not(obs)
+                if temp != 0:
+                    return [i, temp] #sensor hit a round obstacle, return the type of obstacle
 
             if show_sensors:
                 pygame.draw.circle(screen, (255, 255, 255), (rotated_p), 2)
 
         # Return the distance for the arm.
-        return i
+        return [i, 0] #sensor did not hit anything return 0 for black space
 
     def make_sonar_arm(self, x, y):
         spread = 10  # Default spread.
@@ -284,14 +305,12 @@ class GameState:
             return 1  # Sensor is on a yellow obstacle
         elif reading == THECOLORS['brown']:
             return 2  # Sensor is on brown obstacle
-        elif reading == THECOLORS['red']:
-            return 3  # Sensor is on a wall.
         else:
             return 0 #for black
 
 
 if __name__ == "__main__":
-    weights = [1, 1, 1, 1]
+    weights = [1, 1, 1, 1, 1, 1, 1, 1]
     game_state = GameState()
     while True:
         game_state.frame_step((random.randint(0, 2)))

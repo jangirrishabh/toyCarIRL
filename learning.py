@@ -1,4 +1,4 @@
-from flat_game import carmunk2 as carmunk
+from flat_game import carmunk
 import numpy as np
 import random
 import csv
@@ -6,7 +6,7 @@ from nn import neural_net, LossHistory
 import os.path
 import timeit
 
-NUM_INPUT = 3
+NUM_INPUT = 8 #3
 GAMMA = 0.9  # Forgetting.
 TUNING = False  # If False, just use arbitrary, pre-selected params.
 
@@ -47,7 +47,7 @@ def train_net(model, params, weights):
 
         # Choose an action.
         if random.random() < epsilon or t < observe:
-            action = np.random.randint(0, 3)  # random
+            action = np.random.randint(0, 3)  # random #3
         else:
             # Get Q values for each action.
             qval = model.predict(state, batch_size=1)
@@ -146,17 +146,21 @@ def process_minibatch(minibatch, model):
         newQ = model.predict(new_state_m, batch_size=1)
         # Get our best move. I think?
         maxQ = np.max(newQ)
-        y = np.zeros((1, 3))
+        y = np.zeros((1, 8)) #3
         y[:] = old_qval[:]
         # Check for terminal state.
-        if reward_m != -500:  # non-terminal state
-            update = (reward_m + (GAMMA * maxQ))
-        else:  # terminal state
+        #if reward_m != -500:  # non-terminal state
+            #update = (reward_m + (GAMMA * maxQ))
+        #else:  # terminal state
+            #update = reward_m
+        if new_state_m[0][7] == -1:  #terminal state
             update = reward_m
+        else:  # non-terminal state
+            update = (reward_m + (GAMMA * maxQ))
         # Update the value for the action we took.
         y[0][action_m] = update
         X_train.append(old_state_m.reshape(NUM_INPUT,))
-        y_train.append(y.reshape(3,))
+        y_train.append(y.reshape(8,)) #3
 
     X_train = np.array(X_train)
     y_train = np.array(y_train)
@@ -197,8 +201,8 @@ def IRL_helper(weights):
 
 
 if __name__ == "__main__":
-    weights = [ 0.72485743 , 0.41335401 , 0.22873458 , 0.5013987 ] # anti clock 
-    #weights = [ 0.43084415 ,-0.00660441 ,-0.50165466 , 0.75011486] # clock wise
+    weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ]
+
     if TUNING:
         param_list = []
         nn_params = [[164, 150], [256, 256],

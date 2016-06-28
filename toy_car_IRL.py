@@ -14,24 +14,27 @@ from cvxopt import solvers
 from flat_game import carmunk
 from learning import IRL_helper
 
-NUM_SENSORS = 3
+NUM_SENSORS = 8
 
 # <codecell>
 
 class irlAgent:
     def __init__(self): #initial constructor sorta function
-        self.randomPolicy =  [ 708.15413373  ,823.07586729 , 618.50741771  ,  0.0 ] # random initialization
+        #self.randomPolicy =  [ 708.15413373  ,823.07586729 , 618.50741771  ,  0.0 ] # random initialization
+        self.randomPolicy =  [ 6.03481008 , 4.41810248 , 7.07372158 , 1.7829348  , 1.88464332  ,0.76761722 ,5.56480465 ,-0.31203786]# random initialization
         #self.expertPolicy = [ 662.72064093 , 689.52239795 , 894.57495776  ,  0.0  ] # anti clock motion
-        self.expertPolicy =  [ 756.72859592 , 723.5764696 ,  619.23933676 , 0.0  ] # clock motion
+        self.expertPolicy = [  5.28621660e+00 ,  3.27018759e+00 ,  7.34278952e+00  , 1.35424211e+00 , 1.69836669e+00  , 2.00680086e+00  , 4.94059035e+00 , -1.53817797e-20]
+        #self.expertPolicy =  [ 756.72859592 , 723.5764696 ,  619.23933676 , 0.0  ] # clock motion
         self.epsilon = 1.0
         self.policiesFE = {np.linalg.norm(np.asarray(self.expertPolicy)-np.asarray(self.randomPolicy)):self.randomPolicy}
 
 
     def getRLAgentFE(self, W): #get the feature expectations of a new poliicy using RL agent
         IRL_helper(W) # train the agent and save the model 
+        print ("XXXXXXXXX")
         saved_model = 'saved-models/164-150-100-50000-25000.h5' # use the saved model to get the feature expectaitons
         model = neural_net(NUM_SENSORS, [164, 150], saved_model)
-        return  play(model)#return feature expectations
+        return  play(model, W)#return feature expectations
     
     def policyListUpdater(self, W):  #update the policyFE list and differences upon arrival of a new weight(policy)
         tempFE = self.getRLAgentFE(W)

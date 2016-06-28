@@ -2,18 +2,17 @@
 Once a model is learned, use this to play it.
 """
 
-from flat_game import carmunk2 as carmunk
+from flat_game import carmunk
 import numpy as np
 from nn import neural_net
 
-NUM_SENSORS = 3
+NUM_SENSORS = 8
 GAMMA = 0.9
 
 
-def play(model):
+def play(model, weights):
 
     car_distance = 0
-    weights = [1, 0.1, 0.1, 1]
     game_state = carmunk.GameState(weights)
 
     # Do nothing to get initial.
@@ -27,6 +26,7 @@ def play(model):
 
         # Choose action.
         action = (np.argmax(model.predict(state, batch_size=1)))
+        print ("Action ", action)
 
         # Take action.
         immediateReward , state, readings = game_state.frame_step(action)
@@ -35,7 +35,7 @@ def play(model):
         featureExpectations += (GAMMA**(car_distance-1))*np.array(readings)
         print ("Feature Expectations :: ", featureExpectations)
         # Tell us something.
-        if car_distance % 2000 == 0:
+        if car_distance % 1000 == 0:
             print("Current distance: %d frames." % car_distance)
             break
 
@@ -47,7 +47,8 @@ if __name__ == "__main__":
     #saved_model = 'saved-models/clock/164-150-100-50000-25000.h5' # [ 756.72859592  723.5764696   619.23933676  0.]
     #saved_model = 'saved-models/antiClock/164-150-100-50000-25000.h5' #[ 662.72064093  689.52239795  894.57495776    0.        ]
     #saved_model = 'saved-models/antiClock/164-150-100-50000-50000.h5' #[ 676.41503823  752.38417361  753.90576239    0.        ]
-    saved_model = 'saved-models/164-150-100-50000-125000.h5'
+    saved_model = 'saved-models/164-150-100-50000-100000.h5'
+    weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ]
 
     model = neural_net(NUM_SENSORS, [164, 150], saved_model)
-    ____ = play(model)
+    print (play(model, weights))
