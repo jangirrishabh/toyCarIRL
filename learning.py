@@ -147,7 +147,7 @@ def process_minibatch(minibatch, model):
         newQ = model.predict(new_state_m, batch_size=1)
         # Get our best move. I think?
         maxQ = np.max(newQ)
-        y = np.zeros((1, 8)) #3
+        y = np.zeros((1, 3)) #3
         y[:] = old_qval[:]
         # Check for terminal state.
         #if reward_m != -500:  # non-terminal state
@@ -161,7 +161,7 @@ def process_minibatch(minibatch, model):
         # Update the value for the action we took.
         y[0][action_m] = update
         X_train.append(old_state_m.reshape(NUM_INPUT,))
-        y_train.append(y.reshape(8,)) #3
+        y_train.append(y.reshape(3,)) #3
 
     X_train = np.array(X_train)
     y_train = np.array(y_train)

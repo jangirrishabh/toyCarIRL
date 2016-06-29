@@ -29,9 +29,9 @@ def play(screen):
         event = screen.getch()
 
         if event == curses.KEY_LEFT:
-            action = 3
+            action = 0
         elif event == curses.KEY_RIGHT:
-            action = 4
+            action = 1
         elif event == curses.KEY_DOWN:
             break
         else:
