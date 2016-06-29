@@ -65,12 +65,12 @@ class GameState:
 
         # Create some obstacles, semi-randomly.
         # We'll create three and they'll move around to prevent over-fitting.
-        self.obstacles = []
-        self.obstacles.append(self.create_obstacle(230, 220, 100, "yellow"))
-        self.obstacles.append(self.create_obstacle(250, 500, 100, "yellow"))
-        self.obstacles.append(self.create_obstacle(780, 350, 100, "brown"))
-        self.obstacles.append(self.create_obstacle(550, 200, 70, "brown"))
-        self.obstacles.append(self.create_obstacle(530, 520, 100, "brown"))
+        #self.obstacles = []
+        #self.obstacles.append(self.create_obstacle(230, 220, 100, "yellow"))
+        #self.obstacles.append(self.create_obstacle(250, 500, 100, "yellow"))
+        #self.obstacles.append(self.create_obstacle(780, 350, 100, "brown"))
+        #self.obstacles.append(self.create_obstacle(550, 200, 70, "brown"))
+        #self.obstacles.append(self.create_obstacle(530, 520, 100, "brown"))
         #self.obstacles.append(self.create_obstacle(600, 600, 35))
 
         # Create a cat.
@@ -146,7 +146,7 @@ class GameState:
         else:
             readings.append(0)
             
-        reward = int(np.dot(self.W, readings))
+        reward = np.dot(self.W, readings)
         state = np.array([readings])
 
         self.num_steps += 1

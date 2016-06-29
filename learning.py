@@ -52,6 +52,7 @@ def train_net(model, params, weights):
             # Get Q values for each action.
             qval = model.predict(state, batch_size=1)
             action = (np.argmax(qval))  # best
+            #print ("action under learner ", action)
 
         # Take action, observe new state and get our treat.
         reward, new_state, temp2 = game_state.frame_step(action)
@@ -88,7 +89,7 @@ def train_net(model, params, weights):
             epsilon -= (1/train_frames)
 
         # We died, so update stuff.
-        if reward <= 0:
+        if state[0][7] == -1:
             # Log the car's distance at this T.
             data_collect.append([t, car_distance])
 
@@ -201,7 +202,10 @@ def IRL_helper(weights):
 
 
 if __name__ == "__main__":
-    weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ]
+    #weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ] #plain anti with obstacles 1000
+    weights = [  5.39138627e-04 , -6.46492771e-02  , 5.83850255e-01 , -2.20347551e-02 ,-2.01624004e-07,  -8.21216705e-08 , -8.08983022e-01 ,  1.16252812e-05]
+
+
 
     if TUNING:
         param_list = []

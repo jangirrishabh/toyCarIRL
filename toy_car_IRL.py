@@ -23,8 +23,10 @@ class irlAgent:
         #self.randomPolicy =  [ 708.15413373  ,823.07586729 , 618.50741771  ,  0.0 ] # random initialization
         self.randomPolicy =  [ 6.03481008 , 4.41810248 , 7.07372158 , 1.7829348  , 1.88464332  ,0.76761722 ,5.56480465 ,-0.31203786]# random initialization
         #self.expertPolicy = [ 662.72064093 , 689.52239795 , 894.57495776  ,  0.0  ] # anti clock motion
-        self.expertPolicy = [  5.28621660e+00 ,  3.27018759e+00 ,  7.34278952e+00  , 1.35424211e+00 , 1.69836669e+00  , 2.00680086e+00  , 4.94059035e+00 , -1.53817797e-20]
+        #self.expertPolicy = [  5.28621660e+00 ,  3.27018759e+00 ,  7.34278952e+00  , 1.35424211e+00 , 1.69836669e+00  , 2.00680086e+00  , 4.94059035e+00 , -1.53817797e-20]
         #self.expertPolicy =  [ 756.72859592 , 723.5764696 ,  619.23933676 , 0.0  ] # clock motion
+        self.expertPolicy = [  7.88780133e-04  , 1.26914430e+00  , 6.78429813e+00  , 5.65143166e+00 ,0.00000000e+00  , 0.00000000e+00  , 4.34856834e+00 ,  0.00000000e+00] # plain anti without obs 2000
+
         self.epsilon = 1.0
         self.policiesFE = {np.linalg.norm(np.asarray(self.expertPolicy)-np.asarray(self.randomPolicy)):self.randomPolicy}
 

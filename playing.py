@@ -35,7 +35,7 @@ def play(model, weights):
         featureExpectations += (GAMMA**(car_distance-1))*np.array(readings)
         print ("Feature Expectations :: ", featureExpectations)
         # Tell us something.
-        if car_distance % 1000 == 0:
+        if car_distance % 2000 == 0:
             print("Current distance: %d frames." % car_distance)
             break
 
@@ -47,8 +47,8 @@ if __name__ == "__main__":
     #saved_model = 'saved-models/clock/164-150-100-50000-25000.h5' # [ 756.72859592  723.5764696   619.23933676  0.]
     #saved_model = 'saved-models/antiClock/164-150-100-50000-25000.h5' #[ 662.72064093  689.52239795  894.57495776    0.        ]
     #saved_model = 'saved-models/antiClock/164-150-100-50000-50000.h5' #[ 676.41503823  752.38417361  753.90576239    0.        ]
-    saved_model = 'saved-models/164-150-100-50000-100000.h5'
-    weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ]
+    saved_model = 'saved-models/164-150-100-50000-75000.h5'
+    weights = [ -5.31699058e-01 , -6.03381696e-01 ,  5.56388439e-01 , -1.64570933e-01 , -1.71304905e-07 , -6.97726694e-08 , -9.89495334e-02 ,  8.23646987e-02] # plain anti without obs 2000
 
     model = neural_net(NUM_SENSORS, [164, 150], saved_model)
     print (play(model, weights))

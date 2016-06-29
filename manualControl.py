@@ -8,7 +8,7 @@ from nn import neural_net
 import curses # for keypress
 
 
-NUM_SENSORS = 3
+NUM_SENSORS = 8
 GAMMA = 0.9
 
 
@@ -29,9 +29,9 @@ def play(screen):
         event = screen.getch()
 
         if event == curses.KEY_LEFT:
-            action = 1
+            action = 3
         elif event == curses.KEY_RIGHT:
-            action = 0
+            action = 4
         elif event == curses.KEY_DOWN:
             break
         else:
@@ -42,7 +42,7 @@ def play(screen):
         immediateReward , state, readings = game_state.frame_step(action)
         featureExpectations += (GAMMA**(car_distance-1))*np.array(readings)
         # Tell us something.
-        if car_distance % 1000 == 0:
+        if car_distance % 2000 == 0:
             break
 
     return featureExpectations
