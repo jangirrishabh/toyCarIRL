@@ -18,7 +18,6 @@ def train_net(model, params, weights):
     observe = 1000  # Number of frames to observe before training.
     epsilon = 1
     train_frames = 25000  # Number of frames to play. 1000000
-    train_frames_number = 25000
     batchSize = params['batchSize']
     buffer = params['buffer']
 
@@ -41,7 +40,7 @@ def train_net(model, params, weights):
     start_time = timeit.default_timer()
 
     # Run the frames.
-    while t < train_frames_number:
+    while t < train_frames:
 
         t += 1
         car_distance += 1
@@ -112,7 +111,7 @@ def train_net(model, params, weights):
 
         # Save the model every 25,000 frames.
         if t % 25000 == 0:
-            model.save_weights('saved-models_brown/' + filename + '-' +
+            model.save_weights('saved-models/' + filename + '-' +
                                str(t) + '.h5',
                                overwrite=True)
             print("Saving model %s - %d" % (filename, t))
@@ -208,7 +207,8 @@ if __name__ == "__main__":
     #weights =   [-0.82912921 , 0.09203298 , 0.41825967 , 0.23083735 ,-0.06848747 , 0.14014116 ,-0.12718711 ,-0.18799206]
 
     #weights = [-0.08805555, -0.06245599 , 0.09146864 ,-0.01147858 , 0.66908548 ,-0.07713598 ,-0.66502319 ,-0.28976889]
-    weights = [ 0.2798415  , 0.54756635 ,-0.55969074 , 0.18558382 , 0.01366991 ,-0.1315585, -0.10050859 ,-0.4965564 ]
+    weights = [ -4.72185415e-01 , -2.31930570e-01 ,  1.53170412e-01  , 3.21408600e-01 ,  9.53537559e-05  , 3.67427377e-01  ,-6.76174919e-01  ,-6.53381539e-02]
+
 
 
 

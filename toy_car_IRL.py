@@ -56,12 +56,11 @@ class irlAgent:
     
     def optimization(self):
         m = len(self.expertPolicy)
-        P = matrix(2.0*np.eye(m), tc='d')
+        P = matrix(2.0*np.eye(m), tc='d') # min ||w||
         q = matrix(np.zeros(m), tc='d')
         #G = matrix((np.matrix(self.expertPolicy) - np.matrix(self.randomPolicy)), tc='d')
-        policyList = []
+        policyList = [self.expertPolicy]
         h_list = [1]
-        policyList.append(self.expertPolicy)
         for i in self.policiesFE.keys():
             policyList.append(self.policiesFE[i])
             h_list.append(1)
@@ -70,8 +69,7 @@ class irlAgent:
         G = matrix(policyMat, tc='d')
         h = matrix(-np.array(h_list), tc='d')
         sol = solvers.qp(P,q,G,h)
-        #print sol['status']
-        #return sol['x']
+
         weights = np.squeeze(np.asarray(sol['x']))
         norm = np.linalg.norm(weights)
         weights = weights/norm
