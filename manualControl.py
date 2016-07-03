@@ -22,6 +22,7 @@ def play(screen):
     _, state, __ = game_state.frame_step((2))
 
     featureExpectations = np.zeros(len(weights))
+    Prev = np.zeros(len(weights))
 
     # Move.
     while True:
@@ -29,21 +30,30 @@ def play(screen):
         event = screen.getch()
 
         if event == curses.KEY_LEFT:
-            action = 0
-        elif event == curses.KEY_RIGHT:
             action = 1
+        elif event == curses.KEY_RIGHT:
+            action = 0
         elif event == curses.KEY_DOWN:
             break
         else:
             action = 2
 
-
         # Take action.
         immediateReward , state, readings = game_state.frame_step(action)
-        featureExpectations += (GAMMA**(car_distance-1))*np.array(readings)
+        if car_distance > 100:
+            featureExpectations += (GAMMA**(car_distance-101))*np.array(readings)
+            
+        
         # Tell us something.
-        if car_distance % 2000 == 0:
+        changePercentage = (np.linalg.norm(featureExpectations - Prev)*100.0)/np.linalg.norm(featureExpectations)
+
+        print (car_distance)
+        print ("percentage change in Feature expectation ::", changePercentage)
+        Prev = np.array(featureExpectations)
+
+        if car_distance % 1000 == 0:
             break
+        
 
     return featureExpectations
 

@@ -17,7 +17,8 @@ def train_net(model, params, weights):
 
     observe = 1000  # Number of frames to observe before training.
     epsilon = 1
-    train_frames = 1000000  # Number of frames to play. 1000000
+    train_frames = 25000  # Number of frames to play. 1000000
+    train_frames_number = 25000
     batchSize = params['batchSize']
     buffer = params['buffer']
 
@@ -40,7 +41,7 @@ def train_net(model, params, weights):
     start_time = timeit.default_timer()
 
     # Run the frames.
-    while t < train_frames:
+    while t < train_frames_number:
 
         t += 1
         car_distance += 1
@@ -89,7 +90,7 @@ def train_net(model, params, weights):
             epsilon -= (1/train_frames)
 
         # We died, so update stuff.
-        if state[0][7] == -1:
+        if state[0][7] == 1:
             # Log the car's distance at this T.
             data_collect.append([t, car_distance])
 
@@ -102,8 +103,8 @@ def train_net(model, params, weights):
             fps = car_distance / tot_time
 
             # Output some stuff so we can watch.
-            print("Max: %d at %d\tepsilon %f\t(%d)\t%f fps" %
-                  (max_car_distance, t, epsilon, car_distance, fps))
+            #print("Max: %d at %d\tepsilon %f\t(%d)\t%f fps" %
+                  #(max_car_distance, t, epsilon, car_distance, fps))
 
             # Reset.
             car_distance = 0
@@ -111,7 +112,7 @@ def train_net(model, params, weights):
 
         # Save the model every 25,000 frames.
         if t % 25000 == 0:
-            model.save_weights('saved-models/' + filename + '-' +
+            model.save_weights('saved-models_brown/' + filename + '-' +
                                str(t) + '.h5',
                                overwrite=True)
             print("Saving model %s - %d" % (filename, t))
@@ -154,7 +155,7 @@ def process_minibatch(minibatch, model):
             #update = (reward_m + (GAMMA * maxQ))
         #else:  # terminal state
             #update = reward_m
-        if new_state_m[0][7] == -1:  #terminal state
+        if new_state_m[0][7] == 1:  #terminal state
             update = reward_m
         else:  # non-terminal state
             update = (reward_m + (GAMMA * maxQ))
@@ -202,8 +203,16 @@ def IRL_helper(weights):
 
 
 if __name__ == "__main__":
-    #weights = [-0.1884167 , -0.4677432  , 0.4095033 , -0.16976284 ,-0.03272345 , 0.70967888, -0.13741348 , 0.1600177 ] #plain anti with obstacles 1000
-    weights = [  5.39138627e-04 , -6.46492771e-02  , 5.83850255e-01 , -2.20347551e-02 ,-2.01624004e-07,  -8.21216705e-08 , -8.08983022e-01 ,  1.16252812e-05]
+    #weights = [ 0.04971919, -0.49727854 ,-0.26373486 ,-0.5413812 ,  0.16655347 ,-0.10348452  ,0.577155  ,  0.12663088] # clock obstacles 25000
+    #weights = [ 0.01919929, -0.45153034 ,-0.06908693, -0.75848042  ,0.33990325 ,-0.08139198,  0.29796847 , 0.0688629 ] # clock obstacles 75000
+    #weights =   [-0.82912921 , 0.09203298 , 0.41825967 , 0.23083735 ,-0.06848747 , 0.14014116 ,-0.12718711 ,-0.18799206]
+
+    #weights = [-0.08805555, -0.06245599 , 0.09146864 ,-0.01147858 , 0.66908548 ,-0.07713598 ,-0.66502319 ,-0.28976889]
+    weights = [ 0.2798415  , 0.54756635 ,-0.55969074 , 0.18558382 , 0.01366991 ,-0.1315585, -0.10050859 ,-0.4965564 ]
+
+
+
+
 
 
 
