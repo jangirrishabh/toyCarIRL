@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 screen.set_alpha(None)
 
 # Showing sensors and redrawing slows things down.
-flag = 1
+flag = 0
 show_sensors = flag
 draw_screen = flag
 
