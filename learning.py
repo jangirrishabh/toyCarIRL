@@ -218,10 +218,10 @@ def train_net_sorter(model, params, weights, fileName):
 
         # Save the model every 25,000 frames.
         if t % 25000 == 0:
-            model.save_weights('saved-models_brown/evaluatedPolicies/' + 'fileName' + '-' +
+            model.save_weights('saved-models_yellow/evaluatedPolicies/' + str(fileName) + '-' +
                                str(t) + '.h5',
                                overwrite=True)
-            print("Saving model %s - %d" % ('fileName', t))
+            print("Saving model %s - %d" % (str(fileName), t))
 
     # Log results after we're done all frames.
     #log_results(filename, data_collect, loss_log)
