@@ -6,18 +6,18 @@ from nn import neural_net, LossHistory
 import os.path
 import timeit
 
-NUM_INPUT = 8 #3
+NUM_INPUT = 8 
 GAMMA = 0.9  # Forgetting.
 TUNING = False  # If False, just use arbitrary, pre-selected params.
+TRAIN_FRAMES = 100000 # to train for 100K frames in total
 
-
-def train_net(model, params, weights):
+def train_net(model, params, weights, path, trainFrames, i):
 
     filename = params_to_filename(params)
 
     observe = 1000  # Number of frames to observe before training.
     epsilon = 1
-    train_frames = 100000  # Number of frames to play. 1000000
+    train_frames = trainFrames  # Number of frames to play. 
     batchSize = params['batchSize']
     buffer = params['buffer']
 
@@ -109,9 +109,9 @@ def train_net(model, params, weights):
             car_distance = 0
             start_time = timeit.default_timer()
 
-        # Save the model every 25,000 frames.
-        if t % 25000 == 0:
-            model.save_weights('saved-models_brown/' + filename + '-' +
+        # Save the model 
+        if t % train_frames == 0:
+            model.save_weights('saved-models_'+ path +'/evaluatedPolicies/'+str(i)+'-'+ filename + '-' +
                                str(t) + '.h5',
                                overwrite=True)
             print("Saving model %s - %d" % (filename, t))
@@ -119,112 +119,6 @@ def train_net(model, params, weights):
     # Log results after we're done all frames.
     log_results(filename, data_collect, loss_log)
 
-def train_net_sorter(model, params, weights, fileName):
-
-
-    observe = 1000  # Number of frames to observe before training.
-    epsilon = 1
-    train_frames = 100000  # Number of frames to play. 1000000
-    batchSize = params['batchSize']
-    buffer = params['buffer']
-
-    # Just stuff used below.
-    max_car_distance = 0
-    car_distance = 0
-    t = 0
-    data_collect = []
-    replay = []  # stores tuples of (S, A, R, S').
-
-    loss_log = []
-
-    # Create a new game instance.
-    game_state = carmunk.GameState(weights)
-
-    # Get initial state by doing nothing and getting the state.
-    _, state, temp1 = game_state.frame_step((2))
-
-    # Let's time it.
-    start_time = timeit.default_timer()
-
-    # Run the frames.
-    while t < train_frames:
-
-        t += 1
-        car_distance += 1
-
-        # Choose an action.
-        if random.random() < epsilon or t < observe:
-            action = np.random.randint(0, 3)  # random #3
-        else:
-            # Get Q values for each action.
-            qval = model.predict(state, batch_size=1)
-            action = (np.argmax(qval))  # best
-            #print ("action under learner ", action)
-
-        # Take action, observe new state and get our treat.
-        reward, new_state, temp2 = game_state.frame_step(action)
-
-        # Experience replay storage.
-        replay.append((state, action, reward, new_state))
-
-        # If we're done observing, start training.
-        if t > observe:
-
-            # If we've stored enough in our buffer, pop the oldest.
-            if len(replay) > buffer:
-                replay.pop(0)
-
-            # Randomly sample our experience replay memory
-            minibatch = random.sample(replay, batchSize)
-
-            # Get training values.
-            X_train, y_train = process_minibatch(minibatch, model)
-
-            # Train the model on this batch.
-            history = LossHistory()
-            model.fit(
-                X_train, y_train, batch_size=batchSize,
-                nb_epoch=1, verbose=0, callbacks=[history]
-            )
-            loss_log.append(history.losses)
-
-        # Update the starting state with S'.
-        state = new_state
-
-        # Decrement epsilon over time.
-        if epsilon > 0.1 and t > observe:
-            epsilon -= (1/train_frames)
-
-        # We died, so update stuff.
-        if state[0][7] == 1:
-            # Log the car's distance at this T.
-            data_collect.append([t, car_distance])
-
-            # Update max.
-            if car_distance > max_car_distance:
-                max_car_distance = car_distance
-
-            # Time it.
-            tot_time = timeit.default_timer() - start_time
-            fps = car_distance / tot_time
-
-            # Output some stuff so we can watch.
-            #print("Max: %d at %d\tepsilon %f\t(%d)\t%f fps" %
-                  #(max_car_distance, t, epsilon, car_distance, fps))
-
-            # Reset.
-            car_distance = 0
-            start_time = timeit.default_timer()
-
-        # Save the model every 25,000 frames.
-        if t % 25000 == 0:
-            model.save_weights('saved-models_yellow/evaluatedPolicies/' + str(fileName) + '-' +
-                               str(t) + '.h5',
-                               overwrite=True)
-            print("Saving model %s - %d" % (str(fileName), t))
-
-    # Log results after we're done all frames.
-    #log_results(filename, data_collect, loss_log)
 
 
 def log_results(filename, data_collect, loss_log):
@@ -296,7 +190,7 @@ def launch_learn(params):
     else:
         print("Already tested.")
 
-def IRL_helper(weights):
+def IRL_helper(weights, path, trainFrames, i):
     nn_param = [164, 150]
     params = {
         "batchSize": 100,
@@ -304,36 +198,13 @@ def IRL_helper(weights):
         "nn": nn_param
     }
     model = neural_net(NUM_INPUT, nn_param)
-    train_net(model, params, weights)
-
-def IRL_sorter(weights, fileName): # for manual evaluation of poilices
-    nn_param = [164, 150]
-    params = {
-        "batchSize": 100,
-        "buffer": 50000,
-        "nn": nn_param
-    }
-    model = neural_net(NUM_INPUT, nn_param)
-    train_net_sorter(model, params, weights, fileName)
+    train_net(model, params, weights, path, trainFrames, i)
 
 
 
 if __name__ == "__main__":
-    #weights = [ 0.04971919, -0.49727854 ,-0.26373486 ,-0.5413812 ,  0.16655347 ,-0.10348452  ,0.577155  ,  0.12663088] # clock obstacles 25000
-    #weights = [ 0.01919929, -0.45153034 ,-0.06908693, -0.75848042  ,0.33990325 ,-0.08139198,  0.29796847 , 0.0688629 ] # clock obstacles 75000
-    #weights =   [-0.82912921 , 0.09203298 , 0.41825967 , 0.23083735 ,-0.06848747 , 0.14014116 ,-0.12718711 ,-0.18799206]
-
-    #weights = [-0.08805555, -0.06245599 , 0.09146864 ,-0.01147858 , 0.66908548 ,-0.07713598 ,-0.66502319 ,-0.28976889]
     weights = [ 0.04924175 ,-0.36950358 ,-0.15510825 ,-0.65179867 , 0.2985827 , -0.23237454 , 0.21222881 ,-0.47323531]
-
-
-
-
-
-
-
-
-
+    path = 'default'
     if TUNING:
         param_list = []
         nn_params = [[164, 150], [256, 256],
@@ -362,4 +233,4 @@ if __name__ == "__main__":
             "nn": nn_param
         }
         model = neural_net(NUM_INPUT, nn_param)
-        train_net(model, params, weights)
+        train_net(model, params, weights, path, TRAIN_FRAMES)

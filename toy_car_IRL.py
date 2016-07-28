@@ -1,59 +1,65 @@
-# IRL algorith originally developed for the cart pole problem, modified to run on the toy car obstacle avoidance problem for testing
+# IRL algorith developed for the toy car obstacle avoidance problem for testing.
 import numpy as np
 import logging
 import scipy
 from playing import play #get the RL Test agent, gives out feature expectations after 2000 frames
 from nn import neural_net #construct the nn and send to playing
-from cvxopt import matrix
-from cvxopt import solvers
-from flat_game import carmunk
-from learning import IRL_helper
+from cvxopt import matrix 
+from cvxopt import solvers #convex optimization library
+from flat_game import carmunk # get the environment
+from learning import IRL_helper # get the Reinforcement learner
 
-NUM_SENSORS = 8
-
+NUM_STATES = 8 
+BEHAVIOR = 'bumping' # yellow/brown/red/bumping
+FRAMES = 100000 # number of RL training frames per iteration of IRL
 
 class irlAgent:
-    def __init__(self): #initial constructor sorta function
-        self.randomPolicy = [ 7.74363107 , 4.83296402 , 6.1289194  , 0.39292849 , 2.0488831  , 0.65611318 , 6.90207523 , 2.46475348]
-        #self.expertPolicy = [  7.53667094e+00 ,  4.63506998e+00  , 7.44218366e+00  , 3.18175577e-01 ,  8.33987661e+00 ,  1.37107443e-08 ,  1.34194780e+00 ,  0.00000000e+00]#going all yellow
-        #self.expertPolicy = [  7.91006787e+00  , 5.37453435e-01 ,  5.23635403e+00  , 2.86523487e+00 ,  3.31200074e+00  , 3.64787240e-06  , 3.82276074e+00  , 1.02196236e-17] # out and clock
-        self.expertPolicy = [  5.22101668e+00  , 5.69809021e+00  , 7.79845852e+00  , 4.84405866e-01   ,    2.08859583e-04  , 9.22152114e+00  , 2.93864139e-01 ,  4.84985047e-17] #going all brown 0.9
-        self.epsilon = 0.1
-        self.randomT = np.linalg.norm(np.asarray(self.expertPolicy)-np.asarray(self.randomPolicy))
-        self.policiesFE = {self.randomT:self.randomPolicy}
-        print ("Expert - Random at the Start (t) :: " , self.randomT)
+    def __init__(self, randomFE, expertFE, epsilon, num_states, num_frames, behavior):
+        self.randomPolicy = randomFE
+        self.expertPolicy = expertFE
+        self.num_states = num_states
+        self.num_frames = num_frames
+        self.behavior = behavior
+        self.epsilon = epsilon # termination when t<0.1
+        self.randomT = np.linalg.norm(np.asarray(self.expertPolicy)-np.asarray(self.randomPolicy)) #norm of the diff in expert and random
+        self.policiesFE = {self.randomT:self.randomPolicy} # storing the policies and their respective t values in a dictionary
+        print ("Expert - Random at the Start (t) :: " , self.randomT) 
         self.currentT = self.randomT
         self.minimumT = self.randomT
 
-    def getRLAgentFE(self, W): #get the feature expectations of a new poliicy using RL agent
-        IRL_helper(W) # train the agent and save the model 
-        saved_model = 'saved-models_brown/164-150-100-50000-100000.h5' # use the saved model to get the feature expectaitons
-        model = neural_net(NUM_SENSORS, [164, 150], saved_model)
-        return  play(model, W)#return feature expectations
+    def getRLAgentFE(self, W, i): #get the feature expectations of a new poliicy using RL agent
+        IRL_helper(W, self.behavior, self.num_frames, i) # train the agent and save the model in a file used below
+        saved_model = 'saved-models_'+self.behavior+'/evaluatedPolicies/'+str(i)+'-164-150-100-50000-'+str(self.num_frames)+'.h5' # use the saved model to get the FE
+        model = neural_net(self.num_states, [164, 150], saved_model)
+        return  play(model, W)#return feature expectations by executing the learned policy
     
-    def policyListUpdater(self, W):  #add the policyFE list and differences
-        tempFE = self.getRLAgentFE(W)
-        hyperDistance = np.abs(np.dot(W, np.asarray(self.expertPolicy)-np.asarray(tempFE)))
+    def policyListUpdater(self, W, i):  #add the policyFE list and differences
+        tempFE = self.getRLAgentFE(W, i) # get feature expectations of a new policy respective to the input weights
+        hyperDistance = np.abs(np.dot(W, np.asarray(self.expertPolicy)-np.asarray(tempFE))) #hyperdistance = t
         self.policiesFE[hyperDistance] = tempFE
-        return hyperDistance
+        return hyperDistance # t = (weights.tanspose)*(expert-newPolicy)
         
     def optimalWeightFinder(self):
+        f = open('weights-'+BEHAVIOR+'.txt', 'w')
+        i = 1
         while True:
-            W = self.optimization() # update only upon finding a closer point
-
+            W = self.optimization() # optimize to find new weights in the list of policies
             print ("weights ::", W )
+            f.write( str(W) )
+            f.write('\n')
             print ("the distances  ::", self.policiesFE.keys())
-            self.currentT = self.policyListUpdater(W)
+            self.currentT = self.policyListUpdater(W, i)
             print ("Current distance (t) is:: ", self.currentT )
-            if self.currentT <= self.epsilon:
+            if self.currentT <= self.epsilon: # terminate if the point reached close enough
                 break
+            i += 1
+        f.close()
         return W
     
-    def optimization(self):
+    def optimization(self): # implement the convex optimization, posed as an SVM problem
         m = len(self.expertPolicy)
         P = matrix(2.0*np.eye(m), tc='d') # min ||w||
         q = matrix(np.zeros(m), tc='d')
-        #G = matrix((np.matrix(self.expertPolicy) - np.matrix(self.randomPolicy)), tc='d')
         policyList = [self.expertPolicy]
         h_list = [1]
         for i in self.policiesFE.keys():
@@ -68,24 +74,25 @@ class irlAgent:
         weights = np.squeeze(np.asarray(sol['x']))
         norm = np.linalg.norm(weights)
         weights = weights/norm
-        return weights
+        return weights # return the normalized weights
                 
-            
             
 if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    #rlEpisodes = 200
-    #rlMaxSteps = 250
-    #W = [-0.9, -0.9, -0.9, -0.9, 1]
-    #env = gym.make('CartPole-v0')
-    irlearner = irlAgent()
-    #print irlearner.policiesFE
-    #irlearner.policyListUpdater(W)
-    #print irlearner.rlAgentFeatureExpecs(W)
-    #print irlearner.expertFeatureExpecs()
-    print (irlearner.optimalWeightFinder())
-    #print irlearner.optimization(20)
-    #np.squeeze(np.asarray(M))
+    randomPolicyFE = [ 7.74363107 , 4.83296402 , 6.1289194  , 0.39292849 , 2.0488831  , 0.65611318 , 6.90207523 , 2.46475348]
+    # ^the random policy feature expectations
+    expertPolicyYellowFE = [7.5366e+00,  4.6350e+00  , 7.4421e+00, 3.1817e-01,  8.3398e+00,  1.3710e-08,  1.3419e+00 ,  0.0000e+00]
+    # ^feature expectations for the "follow Yellow obstacles" behavior
+    expertPolicyRedFE = [7.9100e+00, 5.3745e-01,  5.2363e+00, 2.8652e+00,  3.3120e+00, 3.6478e-06, 3.82276074e+00  , 1.0219e-17] 
+    # ^feature expectations for the follow Red obstacles behavior
+    expertPolicyBrownFE = [5.2210e+00,  5.6980e+00,  7.7984e+00,  4.8440e-01, 2.0885e-04, 9.2215e+00, 2.9386e-01 , 4.8498e-17]
+    # ^feature expectations for the "follow Brown obstacles" behavior
+    expertPolicyBumpingFE = [  7.5313e+00, 8.2716e+00, 8.0021e+00, 2.5849e-03 ,2.4300e+01 ,9.5962e+01 ,1.5814e+01 ,1.5538e+03]
+    # ^feature expectations for the "nasty bumping" behavior
+    
 
+    epsilon = 0.1
+    irlearner = irlAgent(randomPolicyFE, expertPolicyBumpingFE, epsilon, NUM_STATES, FRAMES, BEHAVIOR)
+    print (irlearner.optimalWeightFinder())
 
