@@ -10,7 +10,7 @@ from flat_game import carmunk # get the environment
 from learning import IRL_helper # get the Reinforcement learner
 
 NUM_STATES = 8 
-BEHAVIOR = 'bumping' # yellow/brown/red/bumping
+BEHAVIOR = 'red' # yellow/brown/red/bumping
 FRAMES = 100000 # number of RL training frames per iteration of IRL
 
 class irlAgent:
@@ -93,6 +93,6 @@ if __name__ == '__main__':
     
 
     epsilon = 0.1
-    irlearner = irlAgent(randomPolicyFE, expertPolicyBumpingFE, epsilon, NUM_STATES, FRAMES, BEHAVIOR)
+    irlearner = irlAgent(randomPolicyFE, expertPolicyRedFE, epsilon, NUM_STATES, FRAMES, BEHAVIOR)
     print (irlearner.optimalWeightFinder())
 

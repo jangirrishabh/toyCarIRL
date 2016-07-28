@@ -22,7 +22,7 @@ def play(model, weights):
     featureExpectations = np.zeros(len(weights))
 
     # Move.
-    time.sleep(15)
+    #time.sleep(15)
     while True:
         car_distance += 1
 
