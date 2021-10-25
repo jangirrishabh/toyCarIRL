@@ -6,14 +6,14 @@ Now the question that I kept asking myself is, what is the driving force for thi
 basically the agent tries to choose its actions in such a way that the rewards that is gets from that particular behavior are maximized. Now to make the agent perform different behaviors, it is the reward structure that one must modify/exploit. But assume we only have the knowledge of the behavior of the expert with us, then how do we estimate the reward structure given a particular behavior in the environment? Well, this is the very problem of **Inverse Reinforcement Learning (IRL)**, where given the optimal expert policy (actually assumed to be optimal), we wish to determine the underlying reward structure.
 
 <div class="imgcap" align="middle">
-<img src="/assets/IRL/rl_des.png" width="80%">
+<img src="/assets/IRL/rl_des.png" width="50%">
 <div class="thecap" align="middle">
 	The reinforcement learning framework.
 </div>
 </div>
 
 <div class="imgcap" align="middle">
-<img src="/assets/IRL/irl_des.png" width="80%">
+<img src="/assets/IRL/irl_des.png" width="50%">
 <div class="thecap" align="middle" >
 	The Inverse reinforcement learning framework.
 </div>
@@ -40,7 +40,7 @@ In general, yes, they are the same thing, which means to learn from demonstratio
 ### Working Environment
 
 <div class="imgcap" align="middle">
-<img src="/assets/IRL/envo.png" width="80%">
+<img src="/assets/IRL/envo.png" width="50%">
 <div class="thecap" align="middle" >
 	The white dots represent the extent to which the agent's sensors extend.
 </div>
@@ -85,20 +85,11 @@ As stated in Matt's blog, the aim here is to not just teach the RL agent to avoi
 
 1. The **features** or **basis functions** \\(\phi_i\\) which are basically observables in the state. The features in the current problem are discussed above in the state space section. We define \\(\phi(s_t)\\) to be the sum of all the feature expectations \\(\phi_i\\) such that:
 
-	$$
-	\begin{align}
-	\phi(s_t)  &= \phi_1 + \phi_2 + \phi_3 + ....... + \phi_n \\
-	\end{align}
-	$$
-
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;\phi(s_t)&space;&=&space;\phi_1&space;&plus;&space;\phi_2&space;&plus;&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;\phi_n&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;\phi(s_t)&space;&=&space;\phi_1&space;&plus;&space;\phi_2&space;&plus;&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;\phi_n&space;\\&space;\end{}" title="\begin{} \phi(s_t) &= \phi_1 + \phi_2 + \phi_3 + ....... + \phi_n \\ \end{}" /></a>
+	
 2. **Rewards** \\(r_t\\) - linear combination of these feature values observed at each state \\(s_t\\).
 
-	$$
-	\begin{align}
-	r(s,a,s')  &= w_1 \phi_1 + w_2 \phi_2 + w_3 \phi_3 + ....... + w_n \phi_n \\
-	&= w^T*\phi(s_t) \\
-	\end{align}
-	$$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;r(s,a,s')&space;&=&space;w_1&space;\phi_1&space;&plus;&space;w_2&space;\phi_2&space;&plus;&space;w_3&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;w_n&space;\phi_n&space;\\&space;&=&space;w^T*\phi(s_t)&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;r(s,a,s')&space;&=&space;w_1&space;\phi_1&space;&plus;&space;w_2&space;\phi_2&space;&plus;&space;w_3&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;w_n&space;\phi_n&space;\\&space;&=&space;w^T*\phi(s_t)&space;\\&space;\end{}" title="\begin{} r(s,a,s') &= w_1 \phi_1 + w_2 \phi_2 + w_3 \phi_3 + ....... + w_n \phi_n \\ &= w^T*\phi(s_t) \\ \end{}" /></a>
 
 3. **Feature expectations** \\(\mu(\pi)\\) of a policy \\(\pi\\) is the sum of discounted feature values \\(\phi(s_t)\\).
 
