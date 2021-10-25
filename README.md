@@ -62,7 +62,7 @@ In general, yes, they are the same thing, which means to learn from demonstratio
 
 >Note, the normalization is done to ensure that every observable feature value is in the range [0,1] which is a necessary condition on the rewards for the IRL algorithm to converge.
 
-+ **Rewards:** the reward after every frame is calculated as a weighted linear combination of the feature values observed in that respective frame. Here the reward \\(r_t\\) in the \\(t^{th}\\) frame is calculated by the dot product of the weight vector \\(w\\) with the vector of feature values in \\(t^{th}\\) frame, that is the state vector \\(\phi_t\\). Such that \\(r_t = w^T*\phi_t\\).
++ **Rewards:** the reward after every frame is calculated as a weighted linear combination of the feature values observed in that respective frame. Here the reward r_t in the t th frame is calculated by the dot product of the weight vector w with the vector of feature values in t th frame, that is the state vector phi_t. Such that r_t = w^T x phi_t.
 
 + **Available Actions:** with every new frame, the agent automatically takes a *forward* step, the available actions can either turn the agent *left*, *right* or *do nothing* that is a simple forward step, note that the turning actions include the forward motion as well, it is not an in-place rotation.
 
@@ -83,27 +83,23 @@ As stated in Matt's blog, the aim here is to not just teach the RL agent to avoi
 
 #### Important definitions -
 
-1. The **features** or **basis functions** \\(\phi_i\\) which are basically observables in the state. The features in the current problem are discussed above in the state space section. We define \\(\phi(s_t)\\) to be the sum of all the feature expectations \\(\phi_i\\) such that:
+1. The **features** or **basis functions** phi_i which are basically observables in the state. The features in the current problem are discussed above in the state space section. We define phi(s_t) to be the sum of all the feature expectations phi_i such that:
 
 	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;\phi(s_t)&space;&=&space;\phi_1&space;&plus;&space;\phi_2&space;&plus;&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;\phi_n&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;\phi(s_t)&space;&=&space;\phi_1&space;&plus;&space;\phi_2&space;&plus;&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;\phi_n&space;\\&space;\end{}" title="\begin{} \phi(s_t) &= \phi_1 + \phi_2 + \phi_3 + ....... + \phi_n \\ \end{}" /></a>
-	
-2. **Rewards** \\(r_t\\) - linear combination of these feature values observed at each state \\(s_t\\).
+
+2. **Rewards** r_t - linear combination of these feature values observed at each state s_t.
 
 	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;r(s,a,s')&space;&=&space;w_1&space;\phi_1&space;&plus;&space;w_2&space;\phi_2&space;&plus;&space;w_3&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;w_n&space;\phi_n&space;\\&space;&=&space;w^T*\phi(s_t)&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;r(s,a,s')&space;&=&space;w_1&space;\phi_1&space;&plus;&space;w_2&space;\phi_2&space;&plus;&space;w_3&space;\phi_3&space;&plus;&space;.......&space;&plus;&space;w_n&space;\phi_n&space;\\&space;&=&space;w^T*\phi(s_t)&space;\\&space;\end{}" title="\begin{} r(s,a,s') &= w_1 \phi_1 + w_2 \phi_2 + w_3 \phi_3 + ....... + w_n \phi_n \\ &= w^T*\phi(s_t) \\ \end{}" /></a>
 
-3. **Feature expectations** \\(\mu(\pi)\\) of a policy \\(\pi\\) is the sum of discounted feature values \\(\phi(s_t)\\).
+3. **Feature expectations** mu(pi) of a policy pi is the sum of discounted feature values phi(s_t).
 
-	$$
-	\begin{align}
-	\mu(\pi) &= \sum_{t=0}^{\infty} \gamma^t \phi(s_t) \\
-	\end{align}
-	$$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;\mu(\pi)&space;&=&space;\sum_{t=0}^{\infty}&space;\gamma^t&space;\phi(s_t)&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;\mu(\pi)&space;&=&space;\sum_{t=0}^{\infty}&space;\gamma^t&space;\phi(s_t)&space;\\&space;\end{}" title="\begin{} \mu(\pi) &= \sum_{t=0}^{\infty} \gamma^t \phi(s_t) \\ \end{}" /></a>
 
-	The feature expectations of a policy are independent of the weights, they only dependent on the states visited during the run (according to the policy) and on the discount factor \\(\gamma\\) a number between 0 and 1 (e.g. 0.9 in our case). To obtain the feature expectations of a policy we have to execute the policy in real time with the agent and record the states visited and the feature values obtained.
+	The feature expectations of a policy are independent of the weights, they only dependent on the states visited during the run (according to the policy) and on the discount factor gamma a number between 0 and 1 (e.g. 0.9 in our case). To obtain the feature expectations of a policy we have to execute the policy in real time with the agent and record the states visited and the feature values obtained.
 
 #### Initializations
 
-1. Expert policy feature expectations or the **expert's feature expectations** \\(\mu(\pi_E)\\) are obtained by the actions that are taken according to the expert behavior. We basically execute this policy and get the feature expectations as we do with any other policy.
+1. Expert policy feature expectations or the **expert's feature expectations** mu(pi_E) are obtained by the actions that are taken according to the expert behavior. We basically execute this policy and get the feature expectations as we do with any other policy.
 The expert feature expectations are given to the IRL algorithm to find the weights such that the reward funciton corresponding to the weights resemebles the underlying reward function that the expert is trying to maximize (in usual RL language).
 
 2. **Random policy feature expectations** - execute a random policy and use the feature expectations obtained to initialize IRL.
@@ -111,31 +107,18 @@ The expert feature expectations are given to the IRL algorithm to find the weigh
 #### The algorithm
 
 1. Maintain a list of the policy feature expectations that we obtain after every iteration.
-2. At the very start we have only \\(\pi^1\\) -> the random policy feature expectations.
-3. Find the first set of weights of \\(w^1\\) by convex optimization, the problem is similar to an SVM classifier which tries to give a +1 label to the expert feature expec. and -1 label to all the other policy feature expecs.-
+2. At the very start we have only pi^1 -> the random policy feature expectations.
+3. Find the first set of weights of w^1 by convex optimization, the problem is similar to an SVM classifier which tries to give a +1 label to the expert feature expec. and -1 label to all the other policy feature expecs.-
 
-	$$
-	\begin{align}
-	min ||w||_{2}^{2} \\
-	\end{align}
-	$$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;min&space;||w||_{2}^{2}&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;min&space;||w||_{2}^{2}&space;\\&space;\end{}" title="\begin{} min ||w||_{2}^{2} \\ \end{}" /></a>
 
 	such that, 
 
-	$$
-	\begin{align}
-	w^T \mu_E &>= 1 \\ 
-	- w^T \mu_{\pi^(i)} &>= 1 \\ \text{definition of expectation}
-	\end{align}
-	$$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;w^T&space;\mu_E&space;&>=&space;1&space;\\&space;-&space;w^T&space;\mu_{\pi^(i)}&space;&>=&space;1&space;\\&space;\text{definition&space;of&space;expectation}&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;w^T&space;\mu_E&space;&>=&space;1&space;\\&space;-&space;w^T&space;\mu_{\pi^(i)}&space;&>=&space;1&space;\\&space;\text{definition&space;of&space;expectation}&space;\end{}" title="\begin{} w^T \mu_E &>= 1 \\ - w^T \mu_{\pi^(i)} &>= 1 \\ \text{definition of expectation} \end{}" /></a>
 
 	Termination condition:
 
-	$$
-	\begin{align}
-	w^T (\mu_E - \mu_{\pi^(i)} ) &<= \epsilon \\ 
-	\end{align}
-	$$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\begin{}&space;w^T&space;(\mu_E&space;-&space;\mu_{\pi^(i)}&space;)&space;&<=&space;\epsilon&space;\\&space;\end{}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{}&space;w^T&space;(\mu_E&space;-&space;\mu_{\pi^(i)}&space;)&space;&<=&space;\epsilon&space;\\&space;\end{}" title="\begin{} w^T (\mu_E - \mu_{\pi^(i)} ) &<= \epsilon \\ \end{}" /></a>
 
 5. Now, once we get the weights after one iteration of optimization, that is once we get a new reward function, we have to learn the policy which this reward function gives rise to. This is same as saying, find a policy that tries to maximize this obtained reward function. To find this new policy we have to train the Reinforcement Learning algorithm with this new reward function, and train it until the Q-values converge, to get a proper estimate of the policy.
 
